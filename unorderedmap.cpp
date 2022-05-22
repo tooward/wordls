@@ -329,47 +329,50 @@ std::map<char, std::pair<int,int>> calculateCharacterFrequency(StringVec diction
 }
 
 std::string calculateBestStartWord (
-            std::vector<char> ignoreChars,
-            std::vector<std::pair<char, pair<int, int>>> characterCountAndRankVector,
-            std::map<char, std::vector<std::pair<std::string, int>>> charMap)
+        std::vector<char> ignoreChars,
+        std::vector<std::pair<std::string, std::pair<int, int>>> wordsWithFrequencyAndValue)
 {
-
-    // need to refactor this
     // - this requires the earlier letters in the word. ex: a will always be in the word. may not be highest value word
     // - implement ignore chars so can recommend a follow-up word if first word has no hits
 
     std::string result;
+    //std::cout << "IgnoreChars count into calculateBestStartWord " << ignoreChars.size() << std::endl;
 
-    // sort characterCountAndRankVector by frequency
-    std::sort(characterCountAndRankVector.begin(), characterCountAndRankVector.end(), [=](std::pair<char, pair<int, int>>& a, std::pair<char, pair<int, int>>& b){
-        return a.second.first > b.second.first;
+    // sort characterCountAndRankVector by value
+    std::sort(wordsWithFrequencyAndValue.begin(), wordsWithFrequencyAndValue.end(), [=](std::pair<std::string, std::pair<int, int>>& a, std::pair<std::string, std::pair<int, int>>& b){
+        return a.second.second > b.second.second;
     });
 
-    StringIntPairVec results;
-    StringIntPairVec tempResults;
-    results = charMap.find(characterCountAndRankVector[0].first)->second; // obtains all words that this letter appears in
-    StringIntPairVec rightResults;
-    int capturedChars=10;
+    std::vector<string> results;
+    std::map<char, int> seenChar;
+    //std::cout << "vector length: " << wordsWithFrequencyAndValue.size() << std::endl;
 
-    std::cout << "** search for best first word **" << std::endl;
-    // get words from charMap for first ten letters, grab highest ranked words
-    for (int i=1; i < capturedChars; i++){
-        std::cout << " - evaluating letter " << characterCountAndRankVector[i].first << std::endl;
-        rightResults = charMap.find(characterCountAndRankVector[i].first)->second;
-        tempResults = intersectionStringIntPair(&results, &rightResults);
-        if (tempResults.size() > 0){
-            results = tempResults;
+    // look at first 100 words, ensure has unique characters & ensure doesn't contain characters that are on the ignore list
+    for (int i=0; i < 100 || i < wordsWithFrequencyAndValue.size(); i++){
+
+        bool addword=true;
+        //std::cout << "evaluating word: " << wordsWithFrequencyAndValue[i].first << std::endl;
+        seenChar.clear();
+        for (auto c : ignoreChars){
+            seenChar.insert(std::pair<char, int>(c, 1));
         }
-        else{
-            std::cout << " -- no common results with prior letter " << std::endl;
-        }       
+
+        for (int j = 0; j < wordsWithFrequencyAndValue[i].first.size(); j++){
+            if (seenChar.count(wordsWithFrequencyAndValue[i].first[j]) == 1){
+                addword=false;
+                //std::cout << "- skipping word: " << wordsWithFrequencyAndValue[i].first << " (val " << wordsWithFrequencyAndValue[i].second.second << ")" << std::endl;
+                break;
+            }
+            seenChar.insert(std::pair<char, int>(wordsWithFrequencyAndValue[i].first[j], 1));
+        }
+
+        if (addword){
+            results.push_back(wordsWithFrequencyAndValue[i].first);
+            //std::cout << "- adding word: " << wordsWithFrequencyAndValue[i].first << " (val " << wordsWithFrequencyAndValue[i].second.second << ")" << std::endl;
+
+        }
     }
 
-    // rank by value
-    std::sort(results.begin(), results.end(), [=](std::pair<string, int>& a, std::pair<string, int>& b){
-        return a.second < b.second;
-    });
-    std::cout << "(point value of suggested word is " << results[0].second << std::endl;
-
-    return results[0].first;
+    //std::cout << "(point value of suggested word is " << results[results.size()-1] << std::endl;
+    return results[0];
 }

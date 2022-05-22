@@ -21,4 +21,4 @@ StringVec removeContainsChar(StringVec* list, char character);
 std::vector<std::pair<std::string, int>> removeContainsCharStringIntPair(StringIntPairVec* list, char character);
 bool containsLetters(std::string const &str, char character);
 bool containsOnlyLetters(std::string const &str);
-std::string calculateBestStartWord (std::vector<char> ignoreChars, std::vector<std::pair<char, std::pair<int, int>>> characterCountAndRankVector, std::map<char, std::vector<std::pair<std::string, int>>> charMap);
+std::string calculateBestStartWord (std::vector<char> ignoreChars, std::vector<std::pair<std::string, std::pair<int, int>>> wordsWithFrequencyAndCount);

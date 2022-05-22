@@ -195,10 +195,11 @@ int main(int argc, char* argv[], char* envp[]){
         }
     }
 
-
-// Suggest first word
+// Suggest first word. If > first loop suggests starting word based on ignored characters.
     std::vector<char> ignoreChars;
-    std::cout << "suggested first word: " << calculateBestStartWord(ignoreChars, characterCountAndRankVector, charMap) << std::endl;
+    std::cout << "Suggested first word: " << calculateBestStartWord(ignoreChars, wordsWithFrequencyAndCount) << std::endl;
+
+/** INPUT LOOP **/
 
 // prompt user for letters to query
     bool exit;
@@ -206,145 +207,151 @@ int main(int argc, char* argv[], char* envp[]){
     bool firstLoop = true;
     while (!exit){
 
-// find words that contain all the characters in specific positions
-    std::cout << "(type 'exit' to exit):"  << std::endl;
-    std::cout << "Input characters to search for in order with _ for empty character (ex: _ _ e _ _):" << std::endl;
-    std::cin >> input;
-    if (input == "exit"){
-        exit = true;
-        break;
-    }
-    
-    bool firstChar = true;
-    StringIntPairVec results;
-    StringIntPairVec rightResults;
-
-// find words that match positions
-    for (int i=0; i < input.size(); i++){
-            // ignore position markers _
-        if (input[i] != '_' && std::isalpha(input[i])){
-            //std::cout << "- is alpha and not _" << std::endl;
-            if (firstChar){
-            //std::cout << "- first char" << std::endl;
-                results = charMap.find(input[i])->second; // obtains all words that this letter appears in
-                //std::cout << "-- search first char (" << input[i] << ") results = " << results.size() << std::endl;
-                firstChar=false;
-            }
-
-            if (!firstChar){
-                //std::cout << "- not first char" << std::endl;
-                // find words in this array that are in the other array
-                rightResults = charMap.find(input[i])->second;
-                //std::cout << "-- search next char (" << input[i] << ") results = " << rightResults.size() << std::endl;
-                // assume vectors are sorted
-                results = intersectionStringIntPair(&results, &rightResults);
-                //std::cout << "-- search intersection results = " << results.size() << std::endl;
-            }
-
-            // filter out words with character not in this position
-            //std::cout << "- filtering out non-positional words" << std::endl;
-            StringIntPairVec temp;
-            for(auto word : results){
-                if (word.first[i] == input[i])
-                {
-                    temp.push_back(word);
-                }
-            }
-            results = temp;
-        }
-    }
-
-std::cout << "-- results count " << results.size() << std::endl;
-
-// find words that must have character but not in position
-        std::cout << "Input characters to search without position in positional format (ex: _ _ _ a r):"  << std::endl;
+    // find words that contain all the characters in specific positions
+        std::cout << "(type 'exit' to exit):"  << std::endl;
+        std::cout << "Input characters to search for in order with _ for empty character (ex: _ _ e _ _):" << std::endl;
         std::cin >> input;
         if (input == "exit"){
             exit = true;
             break;
         }
+        
+        bool firstChar = true;
+        StringIntPairVec results;
+        StringIntPairVec rightResults;
 
-//std::cout << "-- search first char (" << input[0] << ") results = " << results.size() << std::endl;
-        if (input.size() > 0){
-std::cout << "-- in characters without position, starting results: " << results.size() << std::endl;
+    // find words that match positions
+        for (int i=0; i < input.size(); i++){
+                // ignore position markers _
+            if (input[i] != '_' && std::isalpha(input[i])){
+                //std::cout << "- is alpha and not _" << std::endl;
+                if (firstChar){
+                //std::cout << "- first char" << std::endl;
+                    results = charMap.find(input[i])->second; // obtains all words that this letter appears in
+                    //std::cout << "-- search first char (" << input[i] << ") results = " << results.size() << std::endl;
+                    firstChar=false;
+                }
 
-            for(int pos=0; pos < input.size(); pos++){
-                if(std::isalpha(input[pos])){
-                    // may not have any results yet if word had no hits
-                    if (results.size() == 0) {
-                        results = charMap.find(input[pos])->second; // obtains all words that this letter appears in
-std::cout << "-- no results so getting first result set, obtained results from first char " << input[pos] << " count: " << results.size() << std::endl;
-                    }
-                    else{
+                if (!firstChar){
+                    //std::cout << "- not first char" << std::endl;
                     // find words in this array that are in the other array
-                        rightResults = charMap.find(input[pos])->second;
-std::cout << "-- search next char (" << input[pos] << ") results = " << rightResults.size() << std::endl;
-                        // assume vectors are sorted
-                        results = intersectionStringIntPair(&results, &rightResults);
-std::cout << "-- search intersection results count = " << results.size() << std::endl;
+                    rightResults = charMap.find(input[i])->second;
+                    //std::cout << "-- search next char (" << input[i] << ") results = " << rightResults.size() << std::endl;
+                    // assume vectors are sorted
+                    results = intersectionStringIntPair(&results, &rightResults);
+                    //std::cout << "-- search intersection results = " << results.size() << std::endl;
+                }
+
+                // filter out words with character not in this position
+                //std::cout << "- filtering out non-positional words" << std::endl;
+                StringIntPairVec temp;
+                for(auto word : results){
+                    if (word.first[i] == input[i])
+                    {
+                        temp.push_back(word);
                     }
                 }
+                results = temp;
             }
+        }
 
-std::cout << "-- starting results count = " << results.size() << std::endl;
-            // remove words that have characters in the positions indicated in entry
-            int removedCount = 0;
-            int processedCount = 0;
-            int addedCount = 0;
-            StringIntPairVec removedCharPositions;
+    std::cout << "-- results count " << results.size() << std::endl;
 
-            for(int pos=0; pos < results.size(); pos++){
-                    processedCount++;
+    // find words that must have character but not in position
+            std::cout << "Input characters to search without position in positional format (ex: _ _ _ a r):"  << std::endl;
+            std::cin >> input;
+            if (input == "exit"){
+                exit = true;
+                break;
+            }
+    
+    //std::cout << "-- search first char (" << input[0] << ") results = " << results.size() << std::endl;
+            if (input.size() > 0){
+                //std::cout << "-- in characters without position, starting results: " << results.size() << std::endl;
 
-                    for (int w=0; w < input.size(); w++){
-
-                        if(std::isalpha(input[w])){
-
-                            if (results[pos].first[w] == input[w]){
-//std::cout << "-- found word " << results[pos].first << " with char " << input[w] << " in position " << w + 1 << std::endl;
-                                removedCount++;
-                                break;
-                            }
+                for(int pos=0; pos < input.size(); pos++){
+                    if(std::isalpha(input[pos])){
+                        // may not have any results yet if word had no hits
+                        if (results.size() == 0) {
+                            results = charMap.find(input[pos])->second; // obtains all words that this letter appears in
+                            std::cout << "-- no results so getting first result set, obtained results from first char " << input[pos] << " count: " << results.size() << std::endl;
                         }
-                        if (w == input.size()-1){
-                            removedCharPositions.push_back(results[pos]);
-                            addedCount++;
+                        else{
+                        // find words in this array that are in the other array
+                            rightResults = charMap.find(input[pos])->second;
+                            // std::cout << "-- search next char (" << input[pos] << ") results = " << rightResults.size() << std::endl;
+                            // assume vectors are sorted
+                            results = intersectionStringIntPair(&results, &rightResults);
+                            //std::cout << "-- search intersection results count = " << results.size() << std::endl;
                         }
+                    }
                 }
 
+                // std::cout << "-- starting results count = " << results.size() << std::endl;
+                // remove words that have characters in the positions indicated in entry
+                int removedCount = 0;
+                int processedCount = 0;
+                int addedCount = 0;
+                StringIntPairVec removedCharPositions;
+
+                for(int pos=0; pos < results.size(); pos++){
+                        processedCount++;
+
+                        for (int w=0; w < input.size(); w++){
+
+                            if(std::isalpha(input[w])){
+
+                                if (results[pos].first[w] == input[w]){
+                                    //std::cout << "-- found word " << results[pos].first << " with char " << input[w] << " in position " << w + 1 << std::endl;
+                                    removedCount++;
+                                    break;
+                                }
+                            }
+                            if (w == input.size()-1){
+                                removedCharPositions.push_back(results[pos]);
+                                addedCount++;
+                            }
+                    }
+
+                }
+
+                results.clear();
+                //std::cout << "-- processed " << processedCount << " added " << addedCount << " & removed " << removedCount << " words. removedCharPositions = " << removedCharPositions.size() << std::endl;
+
+                results = removedCharPositions;
+                //std::cout << "-- updated results count = " << results.size() << std::endl;
+
+            }// if input size > 0
+
+    // Exclude characters
+        std::cout << "Exclude characters (- for none):"  << std::endl;
+        std::string exclude;
+        std::cin >> exclude;
+        if (containsOnlyLetters(exclude)){
+
+            if (exclude == "exit"){
+                exit = true;
+                break;
             }
 
-            results.clear();
-std::cout << "-- processed " << processedCount << " added " << addedCount << " & removed " << removedCount << " words. removedCharPositions = " << removedCharPositions.size() << std::endl;
+            for(int pos=0; pos < exclude.size(); pos++){
+                results = removeContainsCharStringIntPair(&results, exclude[pos]);
+    //            std::cout << "-- search next char (" << exclude[pos] << ") results = " << results.size()<< std::endl;
+            }
 
-            results = removedCharPositions;
-std::cout << "-- updated results count = " << results.size() << std::endl;
+            for (auto c : exclude)
+            {
+                ignoreChars.push_back(c);
+            }
 
-        }// if input size > 0
-
-// Exclude characters
-    std::cout << "Exclude characters (- for none):"  << std::endl;
-    std::string exclude;
-    std::cin >> exclude;
-    if (containsOnlyLetters(exclude)){
-
-        if (exclude == "exit"){
-            exit = true;
-            break;
         }
 
-        for(int pos=0; pos < exclude.size(); pos++){
-            results = removeContainsCharStringIntPair(&results, exclude[pos]);
-//            std::cout << "-- search next char (" << exclude[pos] << ") results = " << results.size()<< std::endl;
-        }
-    }
-
-// sort results by point value before printing (descending order)
+    // sort results by point value before printing (descending order)
         std::sort(results.begin(), results.end(), [=](std::pair<string, int>& a, std::pair<string, int>& b){
             return a.second < b.second;
         });
 
-// print results
+    // print results
         if (results.size() > 0){
             for(auto result : results){
                 std::cout << result.first << " (" << result.second << ")" << std::endl;
@@ -353,6 +360,8 @@ std::cout << "-- updated results count = " << results.size() << std::endl;
         }
         else{
             std::cout << "No results!" << std::endl;
+//            std::cout << "ignoreChars count: " << ignoreChars.size() << std::endl;
+            std::cout << "Suggested retry word: " << calculateBestStartWord(ignoreChars, wordsWithFrequencyAndCount) << std::endl;
         }
 
     }

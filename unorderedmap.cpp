@@ -57,17 +57,19 @@ bool containsOnlyLetters(std::string const &str) {
     });
 }
 
-std::vector<std::pair<std::string, int>> removeContainsCharStringIntPair(std::vector<std::pair<std::string, int>>* list, char character){
+// Flagged as position will only remove if not in specific position (but remove altogether if not flagged) Pass -1 for position if ignore
+std::vector<std::pair<std::string, int>> removeContainsCharStringIntPair(std::vector<std::pair<std::string, int>>* list, char character, int position){
 
     std::vector<std::pair<std::string, int>> results;
 
     for(std::pair<std::string, int> w : *list){
 //        std::cout << "evaulating " << w << std::endl;
-        if (!containsLetters(w.first, character))
+        if (!containsLettersOutsidePosition(w.first, character, position))
         {
             results.push_back(w);
         }
     }
+
     list->clear();
     return results;
 }
@@ -99,6 +101,14 @@ bool containsLetters(std::string const &str, char character) {
         return c == character;
     });
     */
+}
+
+bool containsLettersOutsidePosition(std::string const &str, char character, int position) {
+    for(int i=0; i < str.length(); i++){
+        if(str[i] == character && i != position)
+            return true;
+    }
+    return false;
 }
 
 /*

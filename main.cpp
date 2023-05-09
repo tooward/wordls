@@ -82,7 +82,7 @@ int main(int argc, char* argv[], char* envp[]){
 
 // load dictionary into a String Vector
     std::string curdir = std::__fs::filesystem::current_path();
-    curdir += "/data/csvDictionary.csv";
+    curdir += "/dictionary/csvDictionary.csv";
     StringVec dictionaryWords;
     dictionaryWords = loadDictionary(curdir, false, maxRecords, minWordSize, maxWordSize);
 
@@ -140,6 +140,61 @@ int main(int argc, char* argv[], char* envp[]){
             }
         }
     }
+
+/*
+PROBLEM with this code is that the books tend to have mostly names as five letter words. Can't just add them.
+
+    // find words that are in the book analysis that are not in the dictionary (as add more sources will modernize the dictionary)
+    int countWordsNotInDicAdded=0;
+    for (auto wordCountPair : wordCounts){
+        bool wordFound = false;
+        // should be navigating the DAWG here, not vector
+        for (auto dicword : dictionaryWords){
+            if (dicword == wordCountPair.first){
+                wordFound = true;
+                break;
+            }
+        }
+    
+        // need to update the DAWG, not just the array or map
+        if (!wordFound){
+            // calculate point value
+            countWordsNotInDicAdded++;
+            dictionaryWords.push_back(wordCountPair.first);
+
+            for (char letter : wordCountPair.first){
+                if (std::isalpha(letter)){
+                    if(characterFrequencyMap.count(letter))
+                    {
+                        characterFrequencyMap[letter].first = characterFrequencyMap[letter].first + 1;
+                    }
+                    else
+                        characterFrequencyMap[letter].first = 1;
+
+                    // TODO - move this to point to word in trie
+                    auto search = charMap.find(letter);
+                    if (search != charMap.end()){
+                        // update by adding word
+                        std::pair<std::string, int> rp{wordCountPair.first, wordCountPair.second};
+                        search->second.push_back(rp);
+                    }
+                    else{
+                        // insert
+                        vector<std::pair<std::string, int>> words;
+                        words.push_back(std::pair<string, int>{wordCountPair.first, wordCountPair.second});
+                        std::pair<char, std::vector<std::pair<std::string, int>>> charword{letter, words};
+                        charMap.insert(charword);
+                    }
+                }
+            }
+
+            if (countWordsNotInDicAdded < 20 ){
+                std::cout << "- added word not in dictionary: " << wordCountPair.first << std::endl;
+            }
+        }
+    }
+    std::cout << "Words added from books not in dictionary: " << countWordsNotInDicAdded << std::endl;
+*/
 
     // convert map to pair vector for sorting
     // character = alphabetic char, first int = count (times char appears in word) and rank (sum of times appears)
@@ -387,7 +442,14 @@ int main(int argc, char* argv[], char* envp[]){
     // print results
         if (results.size() > 0){
             for(auto result : results){
-                std::cout << result.first << " (" << result.second << ")" << std::endl;
+                // calculate letter total count
+                int wordval=0;
+                for (auto c : result.first)
+                {
+                    wordval += characterFrequencyMap.find(c)->second.second;
+                }
+
+                std::cout << result.first << " (frequency: " << result.second << ", value: " << wordval << ")" << std::endl;
             }
             std::cout << results.size() <<  " results: " << std::endl;
         }
